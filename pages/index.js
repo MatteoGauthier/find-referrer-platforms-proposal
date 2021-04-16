@@ -1,65 +1,76 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import useSWR from "swr";
+import { useState } from "react";
+import fetch from "../libs/fetch";
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+	const [added, setAdded] = useState(false);
+	const [error, setError] = useState("");
+	const [platform, setPlatform] = useState(false);
+	async function submitProposal(elm) {
+		const [tableData, status] = await fetch("/api/addPlatform", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				input: platform,
+			}),
+		});
+		const result = { tableData: await tableData, status: await status };
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+		if (result.status !== 200) {
+			if (result.status == 409) {
+				setError(result.tableData.message);
+			} else {
+				setError("Internal error contact admin");
+			}
+		} else {
+			setAdded(true);
+		}
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+		console.log(result.tableData);
+	}
+	return (
+		<div className="bg-cool-gray-50">
+			<div className="flex flex-col items-center justify-center h-screen max-w-screen-lg mx-auto">
+				<h1 className="mb-4 text-5xl font-bold text-cool-gray-800">
+					<span className="text-pinky">findReferrer</span>{" "}
+					platforms proposal
+				</h1>
+				<p className="w-1/2 text-center text-cool-gray-600">
+					Bienvenue sur l'interface qui vous permet de proposer une plateforme à intégrer dans le service findReferrer.
+				</p>
+				<form className="w-full max-w-md p-6 mt-12 bg-white shadow sm:rounded-md sm:overflow-hidden">
+					<div className="w-full">
+						<label htmlFor="platform_name" className="block text-sm font-medium text-gray-700">
+							Platform name
+						</label>
+						<input
+							type="text"
+							name="platform_name"
+							id="platform_name"
+							onChange={(e) => {
+								setError("");
+								setPlatform(e.target.value);
+							}}
+							className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+						/>
+					</div>
+					<div className="flex items-baseline justify-between mt-3">
+						<span className={added ?   "text-green-800" : "text-red-800"}>{added ? "Succefully proposed " : error}</span>
+						<button
+							type="submit"
+							className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+							onClick={(e) => {
+								e.preventDefault();
+								submitProposal();
+							}}
+						>
+							Proposer
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
 }
