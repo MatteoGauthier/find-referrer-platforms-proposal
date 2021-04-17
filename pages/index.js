@@ -1,12 +1,19 @@
 import useSWR from "swr";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import fetch from "../libs/fetch";
+import { usePrevious } from "../libs/hooks";
 
 export default function Home() {
 	const [added, setAdded] = useState(false);
 	const [error, setError] = useState("");
-	const [platform, setPlatform] = useState(false);
+	const [platform, setPlatform] = useState("");
+	const prevPlatform = usePrevious(platform);
+
 	async function submitProposal(elm) {
+		if (!platform) {
+			setError("Le nom de la plateforme est requis");
+			return;
+		}
 		const [tableData, status] = await fetch("/api/addPlatform", {
 			method: "POST",
 			headers: {
@@ -26,16 +33,20 @@ export default function Home() {
 			}
 		} else {
 			setAdded(true);
+			setPlatform("");
 		}
 
 		console.log(result.tableData);
 	}
+	useEffect(() => {
+		setAdded(false);
+	}, [error]);
+
 	return (
 		<div className="bg-cool-gray-50">
 			<div className="flex flex-col items-center justify-center h-screen max-w-screen-lg mx-auto">
 				<h1 className="mb-4 text-5xl font-bold text-cool-gray-800">
-					<span className="text-pinky">findReferrer</span>{" "}
-					platforms proposal
+					<span className="text-pinky">findReferrer</span> platforms proposal
 				</h1>
 				<p className="w-1/2 text-center text-cool-gray-600">
 					Bienvenue sur l'interface qui vous permet de proposer une plateforme à intégrer dans le service findReferrer.
@@ -49,15 +60,20 @@ export default function Home() {
 							type="text"
 							name="platform_name"
 							id="platform_name"
+							required
+							aria-required
 							onChange={(e) => {
 								setError("");
 								setPlatform(e.target.value);
 							}}
+							value={platform}
 							className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
 						/>
 					</div>
 					<div className="flex items-baseline justify-between mt-3">
-						<span className={added ?   "text-green-800" : "text-red-800"}>{added ? "Succefully proposed " : error}</span>
+						<span className={added ? "text-green-800" : "text-red-800"}>
+							{added ? "'" + prevPlatform + "' " + "Succefully proposed " : error}
+						</span>
 						<button
 							type="submit"
 							className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
