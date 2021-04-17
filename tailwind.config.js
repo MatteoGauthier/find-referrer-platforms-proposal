@@ -16,6 +16,7 @@ module.exports = {
     require('@tailwindcss/forms'),
   ],
   presets: [
-    require('full-palette')
+    require('full-palette'),
+    require('tw-utils/font/inter')
   ]
 }

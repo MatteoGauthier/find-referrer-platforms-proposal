@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
 		const exist =
 			(
 				await table.records.filter((elm) => {
-					return elm.fields.Name == input;
+					return elm.fields.Name.toUpperCase() === input.toUpperCase();
 				})
 			).length !== 0;
 
